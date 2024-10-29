@@ -27,11 +27,11 @@ class UserModel(BaseModel):
         pw1 = self.password1
         pw2 = self.password2
         if pw1 is not None and pw2 is not None and pw1 != pw2:
-            raise ValueError('passwords do not match')
+            raise ValueError('Passwords do not match')
         return self
     
 
-    
+
 app = FastAPI()
 
 
@@ -41,9 +41,9 @@ async def root():
     return {"message" : "Hello World"}
 
 
-@app.post('/check_user/')
-async def check_user(user: UserModel):
-    return UserModel
+@app.post('/get_user/')
+async def get_user(user: UserModel):
+    return user
 
 
 
