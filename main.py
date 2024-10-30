@@ -1,9 +1,29 @@
 from fastapi import FastAPI
 from pydantic import BaseModel, ValidationError, model_validator
+from enum import Enum, IntEnum
 
 from typing import Any
 from typing_extensions import Self
 
+
+
+class Postal_Code(Enum):
+    code1 = '1001'
+    code2 = '1002'
+    code3 = '1003'
+    code4 = '1004'
+    code5 = '999'
+
+
+
+class Contact_Number(BaseModel):
+    number : str
+
+    @model_validator(mode='after')
+    def check_digits(self) -> Self:
+        if len(self.number) != 10:
+            raise ValueError('Contact number should have 10 digits')
+        return self
 
 
 
@@ -11,6 +31,8 @@ class UserModel(BaseModel):
     username: str
     password1: str
     password2: str
+    postal_code: Postal_Code
+    contact_number: Contact_Number
 
 
     @model_validator(mode='before')
@@ -28,6 +50,13 @@ class UserModel(BaseModel):
         pw2 = self.password2
         if pw1 is not None and pw2 is not None and pw1 != pw2:
             raise ValueError('Passwords do not match')
+        return self
+    
+
+    @model_validator(mode='after')
+    def check_contact_starts_with_postal(self) -> Self:
+        if not(self.contact_number.number.startswith(self.postal_code.value)):
+            raise ValueError('Contact number should start with postal code')
         return self
     
 
