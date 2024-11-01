@@ -27,7 +27,7 @@ class Contact_Number(BaseModel):
 
 
 
-class UserModel(BaseModel):
+class User(BaseModel):
     username: str
     password1: str
     password2: str
@@ -61,6 +61,25 @@ class UserModel(BaseModel):
     
 
 
+
+class SubUser(User):
+    unique_id: int
+
+    @model_validator(mode='after')
+    def check_number_of_digits(self) -> Self:
+        if len(str(self.unique_id)) < 3:
+            raise ValueError('Unique ID should have 3 digits')
+        return self
+
+
+    @model_validator(mode='after')
+    def check_compatiblity_with_postal(self) -> Self:
+        if 2*self.unique_id >= int(self.postal_code.value) + 999:
+            raise ValueError('Unique ID is not comaptible with Postal code')
+        return self
+
+
+
 app = FastAPI()
 
 
@@ -71,8 +90,14 @@ async def root():
 
 
 @app.post('/get_user/')
-async def get_user(user: UserModel):
+async def get_user(user: User):
     return user
+
+
+@app.post('/get_sub_user/')
+async def get_sub_user(sub_user: SubUser):
+    return sub_user
+
 
 
 
