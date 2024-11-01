@@ -5,6 +5,7 @@ from enum import Enum, IntEnum
 from typing import Any
 from typing_extensions import Self
 
+import z3
 
 
 class Postal_Code(Enum):
@@ -21,9 +22,14 @@ class Contact_Number(BaseModel):
 
     @model_validator(mode='after')
     def check_digits(self) -> Self:
-        if len(self.number) != 10:
+        number_str = z3.String('number_str')
+        s = z3.Solver()
+        s.add(z3.Length(number_str) == 10)                # adding constraints
+        s.add(number_str == self.number)                  # adding known values
+        if s.check() != z3.sat:                           # checking satisfiability
             raise ValueError('Contact number should have 10 digits')
         return self
+
 
 
 
@@ -38,20 +44,26 @@ class User(BaseModel):
     @model_validator(mode='before')
     @classmethod
     def check_card_number_absent(cls, data: Any) -> Any:
-        if isinstance(data, dict):
-            if 'card_number' in data:
-                raise ValueError("Card number should not be present")
+        data_str = z3.String('data_str')
+        s = z3.Solver()
+        s.add(z3.Not(z3.Contains(data_str, 'card_number')))            # adding constraints
+        s.add(data_str == str(data))                                   # adding known values
+        if s.check() != z3.sat:                                        # checking satisfiability
+            raise ValueError('Card number should not be present')
         return data
 
 
     @model_validator(mode='after')
     def check_passwords_match(self) -> Self:
-        pw1 = self.password1
-        pw2 = self.password2
-        if pw1 is not None and pw2 is not None and pw1 != pw2:
+        pw1 = z3.String('pw1')
+        pw2 = z3.String('pw2')
+        s = z3.Solver()
+        s.add(pw1 == pw2)                                       # adding constraints
+        s.add(pw1 == self.password1, pw2 == self.password2)     # adding known values
+        if s.check() != z3.sat:                                 # checking satisfiability
             raise ValueError('Passwords do not match')
         return self
-    
+
 
     @model_validator(mode='after')
     def check_contact_starts_with_postal(self) -> Self:
