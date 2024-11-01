@@ -55,7 +55,7 @@ class User(BaseModel):
 
     @model_validator(mode='after')
     def check_contact_starts_with_postal(self) -> Self:
-        if not(self.contact_number.number.startswith(self.postal_code.value)):
+        if self.contact_number.number[0:4] != self.postal_code.value:
             raise ValueError('Contact number should start with postal code')
         return self
     
@@ -68,7 +68,7 @@ class SubUser(User):
     @model_validator(mode='after')
     def check_number_of_digits(self) -> Self:
         if len(str(self.unique_id)) < 3:
-            raise ValueError('Unique ID should have 3 digits')
+            raise ValueError('Unique ID should have at least 3 digits')
         return self
 
 
