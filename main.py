@@ -162,8 +162,8 @@ class SubUser(User):
         dd = super().z3_format()
         dd['ast']['unique_id'] = var
         dd['constraints'] += [
-            z3.Length(z3.IntToStr(var)) >= 3,
-            2*var < z3.StrToInt(dd['ast']['postal_code']) + 999
+            z3.Length(z3.IntToStr(var)) >= 4,
+            2*var < z3.StrToInt(dd['ast']['postal_code']) + 900
         ]
         dd['symbolic_result'] = check_symbolically(z3.And(dd['property'] + dd['constraints']))
         return dd
@@ -188,7 +188,7 @@ class SubUser(User):
             )
             s.add(z3.And(dd['property'] + dd['constraints'][:3]))
             if s.check() != z3.sat:
-                raise ValueError('Unique ID should have at least 3 digits.')
+                raise ValueError('Unique ID should have at least 4 digits.')
             s.add(dd['constraints'][3])
             if s.check() != z3.sat:
                 raise ValueError('Unique ID is not comaptible with Postal code.')
