@@ -1,5 +1,9 @@
 from fastapi import FastAPI
-from data_model import *
+
+# from data_model import *
+from data_model_z3 import *
+
+
 
 app = FastAPI()
 
