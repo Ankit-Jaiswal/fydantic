@@ -124,6 +124,18 @@ class User(BaseModel):
 
 
     @model_validator(mode='after')
+    def validate_postal_code(self) -> Self:
+        dd = self.z3_format()
+        s = z3.Solver()
+        s.add(dd['property'])
+        s.add(dd['constraints'][1])
+        s.add(dd['ast']['postal_code'] == self.postal_code.value)
+        if s.check() != z3.sat:
+            raise ValueError(f'No contact number is compatible with the postal code {self.postal_code.value}.')
+        return self
+
+
+    @model_validator(mode='after')
     def validate_user(self) -> Self:
         dd = self.z3_format()
         if dd['symbolic_result']['result'] == 1:
